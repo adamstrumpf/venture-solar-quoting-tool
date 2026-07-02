@@ -3,7 +3,7 @@ import { useState } from 'react';
 function App() {
   const [formData, setFormData] = useState({
     serviceType: '',
-    state: '',
+    customerAddress: '',
     panelQuantity: 1,
     estimatedHours: 1,
     technicianCount: 1,
@@ -30,10 +30,9 @@ function App() {
 
   const serviceTypes = [
     'Critter Guards',
-    'Temp Removal/Reinstall for Roof Work', 
+    'Temp Removal/Reinstall for Roof Work',
     'BOS Repair for Siding',
-    'System Reconnection',
-    'Panel/Inverter Replacement',
+    'Component Replacement',
     'Custom Service'
   ];
 
@@ -54,8 +53,43 @@ function App() {
   };
 
   const electricianStates = ['MA', 'ME', 'RI', 'NH', 'CT'];
-  const requiresElectrician = electricianStates.includes(formData.state) && 
-    ['BOS Repair for Siding', 'System Reconnection', 'Panel/Inverter Replacement'].includes(formData.serviceType);
+
+  const stateNames = {
+    ME: 'Maine', NH: 'New Hampshire', RI: 'Rhode Island', MA: 'Massachusetts',
+    CT: 'Connecticut', NY: 'New York', NJ: 'New Jersey', MD: 'Maryland', PA: 'Pennsylvania',
+  };
+
+  // Derive the service state from a free-form customer address so the rep only
+  // types the address. Tries full state name, then a 2-letter state code, then
+  // a ZIP-code prefix (Venture's 9 service states). Returns '' if undetermined.
+  const detectStateFromAddress = (raw) => {
+    if (!raw) return '';
+    const addr = raw.toUpperCase();
+    // 1) Full state name (e.g., "Massachusetts")
+    for (const abbr of serviceStates) {
+      if (addr.includes(stateNames[abbr].toUpperCase())) return abbr;
+    }
+    // 2) Standalone 2-letter state code (e.g., "..., MA 02101")
+    for (const abbr of serviceStates) {
+      if (new RegExp(`\\b${abbr}\\b`).test(addr)) return abbr;
+    }
+    // 3) ZIP-code prefix fallback
+    const zip = addr.match(/\b(\d{5})(?:-\d{4})?\b/);
+    if (zip) {
+      const p = parseInt(zip[1].slice(0, 3), 10);
+      const ranges = [
+        ['CT', 60, 69], ['MA', 10, 27], ['RI', 28, 29], ['NH', 30, 38], ['ME', 39, 49],
+        ['NJ', 70, 89], ['NY', 100, 149], ['PA', 150, 196], ['MD', 206, 219],
+      ];
+      for (const [st, lo, hi] of ranges) if (p >= lo && p <= hi) return st;
+    }
+    return '';
+  };
+
+  const detectedState = detectStateFromAddress(formData.customerAddress);
+
+  const requiresElectrician = electricianStates.includes(detectedState) &&
+    ['BOS Repair for Siding', 'Component Replacement'].includes(formData.serviceType);
 
   const calculateQuote = () => {
     let laborCost = 0;
@@ -131,11 +165,6 @@ function App() {
     web: 'venturehome.com',
   };
 
-  const stateNames = {
-    ME: 'Maine', NH: 'New Hampshire', RI: 'Rhode Island', MA: 'Massachusetts',
-    CT: 'Connecticut', NY: 'New York', NJ: 'New Jersey', MD: 'Maryland', PA: 'Pennsylvania',
-  };
-
   // Venture Home horizontal wordmark (black) — inlined so the printed quote
   // never depends on a network image load at print time.
   const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 596.73 74.21"><g fill="#231f20"><path d="M358.99,4.47v20.48c3.61-1.76,7.41-2.63,11.51-2.72,13.96-.2,24.87,7.8,24.87,22.72v28.09h-7.61v-28.09c-.1-10.06-7.7-15.8-17.27-15.8-3.7,0-7.8.78-11.51,2.14v41.75h-7.61V4.47h7.61Z"/><path d="M426.19,74.21c-14.82,0-25.07-11.41-25.07-25.86s10.23-25.76,25.07-25.76,25.17,11.31,25.17,25.76-10.23,25.86-25.17,25.86ZM426.19,67.49c8.98,0,17.56-6.23,17.56-19.11s-8.59-18.92-17.56-18.92-17.47,6.04-17.47,18.92,8.59,19.11,17.47,19.11Z"/><path d="M499.07,43.48l-.1,29.56h-7.31l-.2-29.56c0-11.31-6.04-14.33-13.96-14.43-4.1,0-8.19.29-12,1.76v42.24h-7.7V25.93c6.33-2.23,13.27-3.61,19.8-3.61,7.21.1,14.23,1.96,17.66,8.59,3.51-6.43,9.96-8.49,16.88-8.49,11.31,0,20.58,5.76,20.58,22.05v28.58h-7.61v-28.58c0-10.82-5.67-15.31-12.98-15.31s-12.98,3.41-13.07,14.33v-.02Z"/><path d="M581.59,53.57l7.12,1c-1.92,8.13-7.35,13.86-14.88,17.07-15.43,6.59-28.33-2-33.26-13.8-5.02-11.74-2.14-27.09,12.9-33.62,14.41-6.25,29.31,1.8,33.36,17.25l-38.2,16.33c3.82,7.49,12.53,11.94,22.56,7.64,5.02-2.14,9.13-6.45,10.41-11.88ZM577.93,38.28c-4.27-8.04-12.96-11.45-21.72-7.9-9.82,4.31-12.04,13.53-10.04,21.46l31.76-13.56Z"/><path d="M182.75,0h-13.49v20.11h-5.67v11.51h5.67v24.46c-.47,14.05,11.06,18.86,22.7,17v-12.15c-5.88.71-9.21-1.8-9.21-5.23v-24.09h9.21v-11.51h-9.21V0Z"/><path d="M270.8,25.17l-1.12-5.51v-.06h-11.21v53.4h13.66v-32.97c0-8.66,9.96-10.19,16.41-5.82l5.88-10.74c-6.78-6.06-17.52-6.21-23.6,1.69l-.02.02Z"/><path d="M247.04,20.11h-13.98v40.38c-8.68,3.1-20.27.12-19.84-10.84v-29.54h-13.76v29.48c0,15.96,11.86,24.52,26.34,24.52,6.57,0,13.17-1.04,21.27-3.98l-.06-.06V20.11h.02Z"/><path d="M113.08,22.9h.06v-.04l-.06.06v-.02Z"/><path d="M28.52,49.75l-2,14.17h-.69l-2.23-14.39-8.84-29.7H0l17.41,53.4h17.25l17.52-53.4h-14.76l-8.9,29.91Z"/><path d="M111.18,22.88v50.14h13.98v-40.48c8.31-3.55,19.95-1.41,19.84,10.25v30.31h13.76v-30.34c-.31-26.78-28.83-26.82-47.57-19.86v-.02Z"/><path d="M71.45,57.04l33.44-16.45c-.69-2.67-1.74-5.12-2.43-6.65-6.19-13.35-20.43-19.17-33.93-12.43-15.29,7.63-17.78,24.03-12.07,36.34,5.61,12.37,19.43,21.09,35.24,13.29,6.72-3.33,11.64-9,14.29-18.03l-10-2.94c-4.39,10.68-18.09,15.25-24.56,6.86h.02ZM73.82,32.58c4.7-2.35,10.74-2.18,14.82,3.92l-21.76,10.68c-1.96-6.86,2.22-12.25,6.94-14.6Z"/><path d="M334.57,50.24c-4.29,10.74-17.99,15.37-24.5,7.04l33.34-16.68c-.69-2.67-1.74-5.12-2.43-6.65-6.29-13.35-20.58-19.07-34.03-12.25-15.29,7.74-17.68,24.09-11.9,36.4,5.67,12.31,19.52,20.92,35.3,13.07,6.76-3.37,11.62-9.02,14.21-18.03l-9.98-2.88-.02-.02ZM312.24,32.7c4.76-2.39,10.8-2.23,14.88,3.82l-21.7,10.84c-2.02-6.86,2.02-12.25,6.82-14.66Z"/><path d="M592.75,74.06c-2.35,0-4.01-1.57-4.01-3.78s1.66-3.76,4.01-3.76,3.98,1.55,3.98,3.76-1.65,3.78-3.98,3.78ZM592.75,73.36c1.87,0,3.18-1.27,3.18-3.07s-1.32-3.06-3.18-3.06-3.18,1.27-3.18,3.06,1.32,3.07,3.18,3.07ZM591.37,72.24v-3.92h1.57c.88,0,1.47.38,1.47,1.02,0,.58-.47.89-.97.97.52.08.8.33.83.83.02.47.03.99.16,1.1h-.8c-.09-.19-.11-.55-.13-.96-.02-.5-.25-.67-.75-.67h-.61v1.63h-.77ZM592.14,70.02h.75c.45,0,.71-.27.71-.6s-.28-.52-.71-.52h-.75v1.11Z"/></g></svg>`;
@@ -172,7 +201,7 @@ function App() {
   // Generate a branded, printable PDF quote. Uses the browser's native
   // print-to-PDF via a hidden iframe — no external dependencies required.
   const generatePDF = () => {
-    if (!formData.serviceType || !formData.state) return;
+    if (!formData.serviceType || !formData.customerAddress.trim()) return;
     const q = calculateQuote();
     const items = buildLineItems(q);
     const now = new Date();
@@ -180,7 +209,8 @@ function App() {
     const pad = (n) => String(n).padStart(2, '0');
     const quoteNo = `VH-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
     const money = (n) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const locationName = stateNames[formData.state] || formData.state;
+    const stateName = stateNames[detectedState] || detectedState || 'the service state';
+    const customerAddress = formData.customerAddress.trim();
     const panelWord = `${formData.panelQuantity} panel${formData.panelQuantity > 1 ? 's' : ''}`;
     const rows = items
       .map((it) => `<tr><td class="desc">${it.desc}</td><td class="amt">${money(it.amount)}</td></tr>`)
@@ -222,7 +252,7 @@ function App() {
     <div><div class="lbl">Quote #</div><b>${quoteNo}</b></div>
     <div><div class="lbl">Date</div><b>${dateStr}</b></div>
     <div><div class="lbl">Service</div><b>${formData.serviceType}</b></div>
-    <div><div class="lbl">Location</div><b>${locationName}</b></div>
+    <div><div class="lbl">Location</div><b>${customerAddress}</b></div>
     <div><div class="lbl">System</div><b>${panelWord}</b></div>
   </div>
   <table>
@@ -230,7 +260,7 @@ function App() {
     <tbody>${rows}</tbody>
   </table>
   <div class="total"><div class="lbl">Total Quote</div><div class="val">${money(q.total)}</div></div>
-  ${requiresElectrician ? `<div class="note">&#9889; This service requires a licensed electrician in ${locationName}. Labor is priced at the licensed electrician rate.</div>` : ''}
+  ${requiresElectrician ? `<div class="note">&#9889; This service requires a licensed electrician in ${stateName}. Labor is priced at the licensed electrician rate.</div>` : ''}
   <div class="terms">This quote is an estimate for post-installation service work and is valid for 30 days from the date above. Final pricing may vary based on site conditions confirmed at the time of service. Prepared by ${COMPANY.name}. Questions? Call ${COMPANY.phone} or email ${COMPANY.email}.</div>
 </body></html>`;
 
@@ -360,20 +390,22 @@ function App() {
                 </select>
               </div>
 
-              {/* State */}
+              {/* Customer Address */}
               <div>
-                <label style={{ 
-                  display: 'block', 
-                  marginBottom: '8px', 
-                  fontSize: '14px', 
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
                   fontWeight: '500',
                   color: T.text
                 }}>
-                  State *
+                  Customer Address *
                 </label>
-                <select
-                  value={formData.state}
-                  onChange={(e) => handleInputChange('state', e.target.value)}
+                <input
+                  type="text"
+                  value={formData.customerAddress}
+                  onChange={(e) => handleInputChange('customerAddress', e.target.value)}
+                  placeholder="e.g., 12 Beacon St, Boston, MA 02108"
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -383,12 +415,14 @@ function App() {
                     color: T.text,
                     fontSize: '14px'
                   }}
-                >
-                  <option value="">Select state...</option>
-                  {serviceStates.map(state => (
-                    <option key={state} value={state}>{state}</option>
-                  ))}
-                </select>
+                />
+                {formData.customerAddress.trim() && (
+                  <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: detectedState ? T.muted : T.red }}>
+                    {detectedState
+                      ? `Detected state: ${stateNames[detectedState]}${electricianStates.includes(detectedState) ? ' (licensed electrician state)' : ''}`
+                      : "Couldn't detect the state — include the state or ZIP so pricing is accurate."}
+                  </p>
+                )}
               </div>
 
               {/* System Size */}
@@ -526,26 +560,26 @@ function App() {
                   fontWeight: '500',
                   color: T.ink
                 }}>
-                  ⚡ Licensed electrician required for this service in {formData.state}
+                  ⚡ Licensed electrician required for this service in {stateNames[detectedState] || detectedState}
                 </div>
               )}
 
               {/* Generate Quote Button */}
               <button
                 onClick={generateQuote}
-                disabled={!formData.serviceType || !formData.state}
+                disabled={!formData.serviceType || !formData.customerAddress.trim()}
                 onMouseEnter={() => setHoverStates(prev => ({ ...prev, generate: true }))}
                 onMouseLeave={() => setHoverStates(prev => ({ ...prev, generate: false }))}
                 style={{
                   width: '100%',
                   padding: '14px 24px',
-                  backgroundColor: formData.serviceType && formData.state ? T.accent : '#EDEFEC',
-                  color: formData.serviceType && formData.state ? T.ink : T.dim,
+                  backgroundColor: formData.serviceType && formData.customerAddress.trim() ? T.accent : '#EDEFEC',
+                  color: formData.serviceType && formData.customerAddress.trim() ? T.ink : T.dim,
                   border: 'none',
                   borderRadius: '6px',
                   fontSize: '16px',
                   fontWeight: '600',
-                  cursor: formData.serviceType && formData.state ? 'pointer' : 'not-allowed',
+                  cursor: formData.serviceType && formData.customerAddress.trim() ? 'pointer' : 'not-allowed',
                   transform: hoverStates.generate ? 'translateY(-1px)' : 'translateY(0)',
                   transition: 'all 0.2s ease'
                 }}
@@ -593,7 +627,7 @@ function App() {
                     margin: 0, 
                     fontSize: '14px' 
                   }}>
-                    {formData.state} • {formData.panelQuantity} panels
+                    {formData.customerAddress} • {formData.panelQuantity} panels
                     {requiresElectrician && ' • Licensed electrician required'}
                   </p>
                 </div>

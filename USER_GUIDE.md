@@ -106,14 +106,16 @@ _As features ship, add a new `###` section here using the template in the "For A
 
 **How to use it:**
 1. Open the app.
-2. Under **Quote Details**, choose a **Service Type** and **State** (both required).
+2. Under **Quote Details**, choose a **Service Type** and enter the **Customer Address** (both required).
 3. Enter the **Number of Panels**.
 4. For labor-based services, set **Estimated Hours**, choose the number of **Technicians**, and check any **Materials Needed**.
 5. Click **Generate Quote**. The **Quote Preview** on the right shows the labor, materials, and total.
 
 **Good to know:**
+- The app reads the state from the address automatically and shows it under the field (e.g., "Detected state: Massachusetts"). Include the state or ZIP in the address so it detects correctly. Venture services ME, NH, RI, MA, CT, NY, NJ, MD, and PA.
 - Critter Guards and Temp Removal/Reinstall use fixed per-panel formulas, so the hours/technicians/materials fields are hidden for them.
-- If the state requires a licensed electrician for the selected service (ME, NH, RI, MA, CT), the app shows an alert and prices labor at the electrician rate automatically.
+- If the detected state requires a licensed electrician for the selected service (ME, NH, RI, MA, CT), the app shows an alert and prices labor at the electrician rate automatically.
+- Service types are: Critter Guards, Temp Removal/Reinstall for Roof Work, BOS Repair for Siding, Component Replacement, and Custom Service.
 
 **Added:** 2026-07-02 · **Last updated:** 2026-07-02
 
