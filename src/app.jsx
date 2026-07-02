@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 function App() {
   const [formData, setFormData] = useState({
@@ -12,6 +12,9 @@ function App() {
 
   const [showQuote, setShowQuote] = useState(false);
   const [hoverStates, setHoverStates] = useState({});
+  // State captured directly from a Google Places selection (most reliable).
+  const [placeState, setPlaceState] = useState('');
+  const addressInputRef = useRef(null);
 
   // Venture Home light theme — brand green (#73FFC6) + near-black (#231F20).
   const T = {
@@ -86,7 +89,8 @@ function App() {
     return '';
   };
 
-  const detectedState = detectStateFromAddress(formData.customerAddress);
+  // Prefer the state Google returns; otherwise parse it from the typed text.
+  const detectedState = placeState || detectStateFromAddress(formData.customerAddress);
 
   const requiresElectrician = electricianStates.includes(detectedState) &&
     ['BOS Repair for Siding', 'Component Replacement'].includes(formData.serviceType);
@@ -139,9 +143,55 @@ function App() {
   const quote = showQuote ? calculateQuote() : null;
 
   const handleInputChange = (field, value) => {
+    // Manually editing the address invalidates any state Google gave us.
+    if (field === 'customerAddress') setPlaceState('');
     setFormData(prev => ({ ...prev, [field]: value }));
     setShowQuote(false);
   };
+
+  // Load Google Places (if an API key is configured at runtime) and attach
+  // address autocomplete to the Customer Address field. If no key is present,
+  // the field stays a normal text input backed by detectStateFromAddress().
+  useEffect(() => {
+    const key = (window.APP_CONFIG && window.APP_CONFIG.googleMapsApiKey) || '';
+    if (!key || !addressInputRef.current) return;
+
+    const initAutocomplete = () => {
+      if (!(window.google && window.google.maps && window.google.maps.places)) return;
+      const ac = new window.google.maps.places.Autocomplete(addressInputRef.current, {
+        types: ['address'],
+        componentRestrictions: { country: 'us' },
+        fields: ['formatted_address', 'address_components'],
+      });
+      ac.addListener('place_changed', () => {
+        const place = ac.getPlace();
+        const addr = place.formatted_address || addressInputRef.current.value;
+        let st = '';
+        (place.address_components || []).forEach((c) => {
+          if (c.types.includes('administrative_area_level_1')) st = c.short_name;
+        });
+        setPlaceState(st);
+        setFormData((prev) => ({ ...prev, customerAddress: addr }));
+        setShowQuote(false);
+      });
+    };
+
+    if (window.google && window.google.maps && window.google.maps.places) {
+      initAutocomplete();
+      return;
+    }
+    let script = document.getElementById('gmaps-script');
+    if (script) {
+      script.addEventListener('load', initAutocomplete);
+      return;
+    }
+    script = document.createElement('script');
+    script.id = 'gmaps-script';
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=places`;
+    script.async = true;
+    script.onload = initAutocomplete;
+    document.head.appendChild(script);
+  }, []);
 
   const handleMaterialToggle = (material) => {
     setFormData(prev => ({
@@ -368,7 +418,7 @@ function App() {
                   fontWeight: '500',
                   color: T.text
                 }}>
-                  Service Type *
+                  Service Type
                 </label>
                 <select
                   value={formData.serviceType}
@@ -399,13 +449,15 @@ function App() {
                   fontWeight: '500',
                   color: T.text
                 }}>
-                  Customer Address *
+                  Customer Address
                 </label>
                 <input
+                  ref={addressInputRef}
                   type="text"
                   value={formData.customerAddress}
                   onChange={(e) => handleInputChange('customerAddress', e.target.value)}
-                  placeholder="e.g., 12 Beacon St, Boston, MA 02108"
+                  placeholder="Start typing the address…"
+                  autoComplete="off"
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -416,11 +468,11 @@ function App() {
                     fontSize: '14px'
                   }}
                 />
-                {formData.customerAddress.trim() && (
-                  <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: detectedState ? T.muted : T.red }}>
+                {formData.customerAddress.trim() && !serviceStates.includes(detectedState) && (
+                  <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: T.red }}>
                     {detectedState
-                      ? `Detected state: ${stateNames[detectedState]}${electricianStates.includes(detectedState) ? ' (licensed electrician state)' : ''}`
-                      : "Couldn't detect the state — include the state or ZIP so pricing is accurate."}
+                      ? `${stateNames[detectedState] || detectedState} is outside Venture's service area.`
+                      : 'Add the state or ZIP so pricing applies correctly.'}
                   </p>
                 )}
               </div>
