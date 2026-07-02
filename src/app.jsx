@@ -124,7 +124,7 @@ function App() {
   const COMPANY = {
     name: 'Venture Home Solar',
     phone: '(888) 522-9161',
-    email: 'contact@venturehome.com',
+    email: 'support@venturehome.com',
     web: 'venturehome.com',
   };
 
@@ -211,7 +211,6 @@ function App() {
   <div class="head">
     <div>
       <div class="wordmark">VENTURE <span>HOME</span></div>
-      <div class="tag">Whole-Home Solar &middot; Battery &middot; EV Charging</div>
     </div>
     <div class="contact">${COMPANY.phone}<br/>${COMPANY.email}<br/>${COMPANY.web}</div>
   </div>
@@ -309,7 +308,7 @@ function App() {
           </div>
           <div style={{ textAlign: 'right', color: T.muted, fontSize: '13px', lineHeight: 1.7 }}>
             (888) 522-9161<br />
-            contact@venturehome.com
+            support@venturehome.com
           </div>
         </header>
 
