@@ -13,16 +13,19 @@ function App() {
   const [showQuote, setShowQuote] = useState(false);
   const [hoverStates, setHoverStates] = useState({});
 
+  // Venture Home light theme — brand green (#73FFC6) + near-black (#231F20).
   const T = {
-    bg: "#0A0D10",
-    surface: "#11151A", 
-    border: "#1E2530",
-    accent: "#F0A830",
-    green: "#2DD4A8",
-    red: "#F87171",
-    text: "#E8EDF3",
-    muted: "#8B95A3",
-    dim: "#4A5568",
+    bg: "#F4F6F3",      // page background (soft light)
+    surface: "#FFFFFF", // cards
+    field: "#F7F8F6",   // input fields
+    border: "#E2E7E0",
+    accent: "#73FFC6",  // brand green
+    ink: "#231F20",     // brand near-black — text on green, dark pills
+    green: "#73FFC6",
+    red: "#DC2626",
+    text: "#231F20",
+    muted: "#6E756E",
+    dim: "#AEB4AD",
   };
 
   const serviceTypes = [
@@ -133,6 +136,10 @@ function App() {
     CT: 'Connecticut', NY: 'New York', NJ: 'New Jersey', MD: 'Maryland', PA: 'Pennsylvania',
   };
 
+  // Venture Home horizontal wordmark (black) — inlined so the printed quote
+  // never depends on a network image load at print time.
+  const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 596.73 74.21"><g fill="#231f20"><path d="M358.99,4.47v20.48c3.61-1.76,7.41-2.63,11.51-2.72,13.96-.2,24.87,7.8,24.87,22.72v28.09h-7.61v-28.09c-.1-10.06-7.7-15.8-17.27-15.8-3.7,0-7.8.78-11.51,2.14v41.75h-7.61V4.47h7.61Z"/><path d="M426.19,74.21c-14.82,0-25.07-11.41-25.07-25.86s10.23-25.76,25.07-25.76,25.17,11.31,25.17,25.76-10.23,25.86-25.17,25.86ZM426.19,67.49c8.98,0,17.56-6.23,17.56-19.11s-8.59-18.92-17.56-18.92-17.47,6.04-17.47,18.92,8.59,19.11,17.47,19.11Z"/><path d="M499.07,43.48l-.1,29.56h-7.31l-.2-29.56c0-11.31-6.04-14.33-13.96-14.43-4.1,0-8.19.29-12,1.76v42.24h-7.7V25.93c6.33-2.23,13.27-3.61,19.8-3.61,7.21.1,14.23,1.96,17.66,8.59,3.51-6.43,9.96-8.49,16.88-8.49,11.31,0,20.58,5.76,20.58,22.05v28.58h-7.61v-28.58c0-10.82-5.67-15.31-12.98-15.31s-12.98,3.41-13.07,14.33v-.02Z"/><path d="M581.59,53.57l7.12,1c-1.92,8.13-7.35,13.86-14.88,17.07-15.43,6.59-28.33-2-33.26-13.8-5.02-11.74-2.14-27.09,12.9-33.62,14.41-6.25,29.31,1.8,33.36,17.25l-38.2,16.33c3.82,7.49,12.53,11.94,22.56,7.64,5.02-2.14,9.13-6.45,10.41-11.88ZM577.93,38.28c-4.27-8.04-12.96-11.45-21.72-7.9-9.82,4.31-12.04,13.53-10.04,21.46l31.76-13.56Z"/><path d="M182.75,0h-13.49v20.11h-5.67v11.51h5.67v24.46c-.47,14.05,11.06,18.86,22.7,17v-12.15c-5.88.71-9.21-1.8-9.21-5.23v-24.09h9.21v-11.51h-9.21V0Z"/><path d="M270.8,25.17l-1.12-5.51v-.06h-11.21v53.4h13.66v-32.97c0-8.66,9.96-10.19,16.41-5.82l5.88-10.74c-6.78-6.06-17.52-6.21-23.6,1.69l-.02.02Z"/><path d="M247.04,20.11h-13.98v40.38c-8.68,3.1-20.27.12-19.84-10.84v-29.54h-13.76v29.48c0,15.96,11.86,24.52,26.34,24.52,6.57,0,13.17-1.04,21.27-3.98l-.06-.06V20.11h.02Z"/><path d="M113.08,22.9h.06v-.04l-.06.06v-.02Z"/><path d="M28.52,49.75l-2,14.17h-.69l-2.23-14.39-8.84-29.7H0l17.41,53.4h17.25l17.52-53.4h-14.76l-8.9,29.91Z"/><path d="M111.18,22.88v50.14h13.98v-40.48c8.31-3.55,19.95-1.41,19.84,10.25v30.31h13.76v-30.34c-.31-26.78-28.83-26.82-47.57-19.86v-.02Z"/><path d="M71.45,57.04l33.44-16.45c-.69-2.67-1.74-5.12-2.43-6.65-6.19-13.35-20.43-19.17-33.93-12.43-15.29,7.63-17.78,24.03-12.07,36.34,5.61,12.37,19.43,21.09,35.24,13.29,6.72-3.33,11.64-9,14.29-18.03l-10-2.94c-4.39,10.68-18.09,15.25-24.56,6.86h.02ZM73.82,32.58c4.7-2.35,10.74-2.18,14.82,3.92l-21.76,10.68c-1.96-6.86,2.22-12.25,6.94-14.6Z"/><path d="M334.57,50.24c-4.29,10.74-17.99,15.37-24.5,7.04l33.34-16.68c-.69-2.67-1.74-5.12-2.43-6.65-6.29-13.35-20.58-19.07-34.03-12.25-15.29,7.74-17.68,24.09-11.9,36.4,5.67,12.31,19.52,20.92,35.3,13.07,6.76-3.37,11.62-9.02,14.21-18.03l-9.98-2.88-.02-.02ZM312.24,32.7c4.76-2.39,10.8-2.23,14.88,3.82l-21.7,10.84c-2.02-6.86,2.02-12.25,6.82-14.66Z"/><path d="M592.75,74.06c-2.35,0-4.01-1.57-4.01-3.78s1.66-3.76,4.01-3.76,3.98,1.55,3.98,3.76-1.65,3.78-3.98,3.78ZM592.75,73.36c1.87,0,3.18-1.27,3.18-3.07s-1.32-3.06-3.18-3.06-3.18,1.27-3.18,3.06,1.32,3.07,3.18,3.07ZM591.37,72.24v-3.92h1.57c.88,0,1.47.38,1.47,1.02,0,.58-.47.89-.97.97.52.08.8.33.83.83.02.47.03.99.16,1.1h-.8c-.09-.19-.11-.55-.13-.96-.02-.5-.25-.67-.75-.67h-.61v1.63h-.77ZM592.14,70.02h.75c.45,0,.71-.27.71-.6s-.28-.52-.71-.52h-.75v1.11Z"/></g></svg>`;
+
   // Build human-readable line items for the printed quote from the current inputs.
   const buildLineItems = (q) => {
     const p = formData.panelQuantity;
@@ -186,10 +193,8 @@ function App() {
 <style>
   * { box-sizing: border-box; }
   body { font-family: 'Outfit', Arial, sans-serif; color: #1a2230; margin: 0; padding: 48px 56px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #F0A830; padding-bottom: 18px; }
-  .wordmark { font-size: 26px; font-weight: 700; letter-spacing: 1px; color: #0A0D10; }
-  .wordmark span { color: #F0A830; }
-  .tag { font-size: 12px; color: #6b7688; margin-top: 4px; }
+  .head { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #73FFC6; padding-bottom: 18px; }
+  .logo svg { height: 26px; width: auto; display: block; }
   .contact { text-align: right; font-size: 12px; color: #6b7688; line-height: 1.7; }
   .title { font-size: 22px; font-weight: 700; margin: 32px 0 18px; }
   .meta { display: flex; flex-wrap: wrap; gap: 32px; font-size: 13px; color: #6b7688; margin-bottom: 26px; }
@@ -200,18 +205,16 @@ function App() {
   th.amt, td.amt { text-align: right; }
   td { padding: 14px 0; border-bottom: 1px solid #eef1f5; font-size: 14px; vertical-align: top; }
   td.amt { font-family: 'JetBrains Mono', monospace; white-space: nowrap; padding-left: 24px; }
-  .total { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding: 16px 20px; background: #0A0D10; border-radius: 8px; }
+  .total { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding: 16px 20px; background: #231F20; border-radius: 8px; }
   .total .lbl { color: #ffffff; font-size: 16px; font-weight: 600; }
-  .total .val { color: #2DD4A8; font-size: 22px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-  .note { margin-top: 22px; padding: 13px 16px; background: #FEF6E7; border: 1px solid #F0A830; border-radius: 6px; font-size: 12.5px; color: #7a5b13; }
+  .total .val { color: #73FFC6; font-size: 22px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .note { margin-top: 22px; padding: 13px 16px; background: #EAFBF3; border: 1px solid #73FFC6; border-radius: 6px; font-size: 12.5px; color: #231F20; }
   .terms { margin-top: 34px; font-size: 11px; color: #9aa4b2; line-height: 1.7; border-top: 1px solid #eef1f5; padding-top: 16px; }
   @media print { body { padding: 32px 40px; } }
 </style></head>
 <body>
   <div class="head">
-    <div>
-      <div class="wordmark">VENTURE <span>HOME</span></div>
-    </div>
+    <div class="logo">${LOGO_SVG}</div>
     <div class="contact">${COMPANY.phone}<br/>${COMPANY.email}<br/>${COMPANY.web}</div>
   </div>
   <div class="title">Service Quote</div>
@@ -285,15 +288,11 @@ function App() {
           gap: '16px'
         }}>
           <div>
-            <div style={{
-              fontSize: '22px',
-              fontWeight: '700',
-              letterSpacing: '1px',
-              color: T.text,
-              marginBottom: '12px'
-            }}>
-              VENTURE <span style={{ color: T.accent }}>HOME</span>
-            </div>
+            <img
+              src="/vh-logo.svg"
+              alt="Venture Home"
+              style={{ height: '30px', display: 'block', marginBottom: '16px' }}
+            />
             <h1 style={{
               fontSize: '26px',
               fontWeight: '700',
@@ -519,12 +518,13 @@ function App() {
               {/* Technician Type Alert */}
               {requiresElectrician && (
                 <div style={{
-                  backgroundColor: T.accent + '20',
+                  backgroundColor: '#EAFBF3',
                   border: `1px solid ${T.accent}`,
                   borderRadius: '6px',
                   padding: '12px',
                   fontSize: '14px',
-                  color: T.accent
+                  fontWeight: '500',
+                  color: T.ink
                 }}>
                   ⚡ Licensed electrician required for this service in {formData.state}
                 </div>
@@ -539,8 +539,8 @@ function App() {
                 style={{
                   width: '100%',
                   padding: '14px 24px',
-                  backgroundColor: formData.serviceType && formData.state ? T.accent : T.dim,
-                  color: formData.serviceType && formData.state ? T.bg : T.muted,
+                  backgroundColor: formData.serviceType && formData.state ? T.accent : '#EDEFEC',
+                  color: formData.serviceType && formData.state ? T.ink : T.dim,
                   border: 'none',
                   borderRadius: '6px',
                   fontSize: '16px',
@@ -633,23 +633,26 @@ function App() {
 
                   {/* Total */}
                   <div style={{
-                    borderTop: `1px solid ${T.border}`,
-                    paddingTop: '12px',
+                    marginTop: '8px',
+                    padding: '16px 20px',
+                    backgroundColor: T.ink,
+                    borderRadius: '8px',
                     display: 'flex',
-                    justifyContent: 'space-between'
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
                   }}>
-                    <span style={{ 
-                      fontSize: '18px', 
-                      fontWeight: '600', 
-                      color: T.text 
+                    <span style={{
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      color: '#FFFFFF'
                     }}>
                       Total Quote
                     </span>
-                    <span style={{ 
-                      fontSize: '20px', 
-                      fontWeight: '700', 
+                    <span style={{
+                      fontSize: '22px',
+                      fontWeight: '700',
                       fontFamily: "'JetBrains Mono', monospace",
-                      color: T.green
+                      color: T.accent
                     }}>
                       ${quote.total.toFixed(2)}
                     </span>
@@ -665,9 +668,9 @@ function App() {
                     width: '100%',
                     marginTop: '24px',
                     padding: '12px 24px',
-                    backgroundColor: 'transparent',
-                    color: T.accent,
-                    border: `1px solid ${T.accent}`,
+                    backgroundColor: hoverStates.pdf ? T.ink : 'transparent',
+                    color: hoverStates.pdf ? '#FFFFFF' : T.ink,
+                    border: `1px solid ${T.ink}`,
                     borderRadius: '6px',
                     fontSize: '14px',
                     fontWeight: '600',
