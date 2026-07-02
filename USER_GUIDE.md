@@ -77,7 +77,8 @@ Before shipping the product publicly, a final pass on this file should:
 
 - [Getting Started](#getting-started)
 - [Features](#features)
-  - _No features yet — add entries as features ship_
+  - [Generate a Quote](#generate-a-quote)
+  - [Download a PDF Quote](#download-a-pdf-quote)
 - [FAQ](#faq)
 - [Support](#support)
 
@@ -99,22 +100,38 @@ To start using **venture-solar-quoting-tool**:
 
 _As features ship, add a new `###` section here using the template in the "For AI Tools" section above. Keep the newest feature at the top of this list, or organize by category — whichever makes the guide easier to navigate._
 
-<!-- Example entry — replace with real features as they ship -->
+### Generate a Quote
 
-### Example Feature (placeholder — delete when real features exist)
-
-**What it does:** A short description of what this feature is for, from the user's perspective.
+**What it does:** Calculates a standardized price for a post-install service job based on the service type, state, panel count, labor, and materials — so every rep quotes the same job the same way.
 
 **How to use it:**
-1. Open the app and sign in
-2. Click **Example Feature** in the main navigation
-3. Fill in the form and click **Save**
+1. Open the app.
+2. Under **Quote Details**, choose a **Service Type** and **State** (both required).
+3. Enter the **Number of Panels**.
+4. For labor-based services, set **Estimated Hours**, choose the number of **Technicians**, and check any **Materials Needed**.
+5. Click **Generate Quote**. The **Quote Preview** on the right shows the labor, materials, and total.
 
 **Good to know:**
-- You need to be signed in to use this feature
-- Changes are saved automatically after 30 seconds of inactivity
+- Critter Guards and Temp Removal/Reinstall use fixed per-panel formulas, so the hours/technicians/materials fields are hidden for them.
+- If the state requires a licensed electrician for the selected service (ME, NH, RI, MA, CT), the app shows an alert and prices labor at the electrician rate automatically.
 
-**Added:** 2026-06-05 · **Last updated:** 2026-06-05
+**Added:** 2026-07-02 · **Last updated:** 2026-07-02
+
+### Download a PDF Quote
+
+**What it does:** Produces a clean, branded Venture Home quote you can save as a PDF or print — with a letterhead, quote number, date, line-item breakdown, and total — ready to email to a customer.
+
+**How to use it:**
+1. Generate a quote (see above).
+2. In the **Quote Preview**, click **Generate PDF Quote**.
+3. Your browser's print dialog opens. Choose **Save as PDF** as the destination (or pick a printer), then save.
+
+**Good to know:**
+- Each quote gets an automatic quote number (format `VH-YYYYMMDD-HHMM`) and today's date.
+- The quote states it is an estimate valid for 30 days and that final pricing may vary with site conditions.
+- No file is stored on a server — the PDF is generated in your browser at the moment you click.
+
+**Added:** 2026-07-02 · **Last updated:** 2026-07-02
 
 ---
 

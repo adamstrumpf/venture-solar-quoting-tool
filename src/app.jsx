@@ -120,6 +120,152 @@ function App() {
     setShowQuote(true);
   };
 
+  // --- Company identity (used in the app header and the printed quote) ---
+  const COMPANY = {
+    name: 'Venture Home Solar',
+    phone: '(888) 522-9161',
+    email: 'contact@venturehome.com',
+    web: 'venturehome.com',
+  };
+
+  const stateNames = {
+    ME: 'Maine', NH: 'New Hampshire', RI: 'Rhode Island', MA: 'Massachusetts',
+    CT: 'Connecticut', NY: 'New York', NJ: 'New Jersey', MD: 'Maryland', PA: 'Pennsylvania',
+  };
+
+  // Build human-readable line items for the printed quote from the current inputs.
+  const buildLineItems = (q) => {
+    const p = formData.panelQuantity;
+    const panelWord = `${p} panel${p > 1 ? 's' : ''}`;
+    const items = [];
+
+    if (formData.serviceType === 'Critter Guards') {
+      items.push({ desc: `Critter guard installation — ${panelWord} (@ $25.00/panel)`, amount: p * 25 });
+      items.push({ desc: 'Base service fee', amount: 250 });
+    } else if (formData.serviceType === 'Temp Removal/Reinstall for Roof Work') {
+      items.push({ desc: `Temporary removal & reinstall — ${panelWord} (@ $325.00/panel)`, amount: p * 325 });
+    } else {
+      if (q.labor > 0) {
+        const role = requiresElectrician ? 'licensed electrician' : 'technician';
+        const roleWord = `${formData.technicianCount} ${role}${formData.technicianCount > 1 ? 's' : ''}`;
+        const rate = requiresElectrician ? '86.45' : '39.90';
+        items.push({
+          desc: `Labor — ${formData.estimatedHours} hr × ${roleWord} @ $${rate}/hr`,
+          amount: q.labor,
+        });
+      }
+      if (q.materials > 0) {
+        const list = formData.materials.length ? formData.materials.join(', ') : 'materials';
+        items.push({ desc: `Materials (${list}) — incl. 15% margin`, amount: q.materials });
+      }
+    }
+    return items;
+  };
+
+  // Generate a branded, printable PDF quote. Uses the browser's native
+  // print-to-PDF via a hidden iframe — no external dependencies required.
+  const generatePDF = () => {
+    if (!formData.serviceType || !formData.state) return;
+    const q = calculateQuote();
+    const items = buildLineItems(q);
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const pad = (n) => String(n).padStart(2, '0');
+    const quoteNo = `VH-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
+    const money = (n) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const locationName = stateNames[formData.state] || formData.state;
+    const panelWord = `${formData.panelQuantity} panel${formData.panelQuantity > 1 ? 's' : ''}`;
+    const rows = items
+      .map((it) => `<tr><td class="desc">${it.desc}</td><td class="amt">${money(it.amount)}</td></tr>`)
+      .join('');
+
+    const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8" />
+<title>Venture Home Quote ${quoteNo}</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Outfit', Arial, sans-serif; color: #1a2230; margin: 0; padding: 48px 56px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #F0A830; padding-bottom: 18px; }
+  .wordmark { font-size: 26px; font-weight: 700; letter-spacing: 1px; color: #0A0D10; }
+  .wordmark span { color: #F0A830; }
+  .tag { font-size: 12px; color: #6b7688; margin-top: 4px; }
+  .contact { text-align: right; font-size: 12px; color: #6b7688; line-height: 1.7; }
+  .title { font-size: 22px; font-weight: 700; margin: 32px 0 18px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 32px; font-size: 13px; color: #6b7688; margin-bottom: 26px; }
+  .meta .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+  .meta b { display: block; color: #1a2230; font-weight: 600; font-size: 14px; margin-top: 3px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: #8b95a3; border-bottom: 2px solid #e3e7ee; padding: 0 0 8px; }
+  th.amt, td.amt { text-align: right; }
+  td { padding: 14px 0; border-bottom: 1px solid #eef1f5; font-size: 14px; vertical-align: top; }
+  td.amt { font-family: 'JetBrains Mono', monospace; white-space: nowrap; padding-left: 24px; }
+  .total { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding: 16px 20px; background: #0A0D10; border-radius: 8px; }
+  .total .lbl { color: #ffffff; font-size: 16px; font-weight: 600; }
+  .total .val { color: #2DD4A8; font-size: 22px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .note { margin-top: 22px; padding: 13px 16px; background: #FEF6E7; border: 1px solid #F0A830; border-radius: 6px; font-size: 12.5px; color: #7a5b13; }
+  .terms { margin-top: 34px; font-size: 11px; color: #9aa4b2; line-height: 1.7; border-top: 1px solid #eef1f5; padding-top: 16px; }
+  @media print { body { padding: 32px 40px; } }
+</style></head>
+<body>
+  <div class="head">
+    <div>
+      <div class="wordmark">VENTURE <span>HOME</span></div>
+      <div class="tag">Whole-Home Solar &middot; Battery &middot; EV Charging</div>
+    </div>
+    <div class="contact">${COMPANY.phone}<br/>${COMPANY.email}<br/>${COMPANY.web}</div>
+  </div>
+  <div class="title">Service Quote</div>
+  <div class="meta">
+    <div><div class="lbl">Quote #</div><b>${quoteNo}</b></div>
+    <div><div class="lbl">Date</div><b>${dateStr}</b></div>
+    <div><div class="lbl">Service</div><b>${formData.serviceType}</b></div>
+    <div><div class="lbl">Location</div><b>${locationName}</b></div>
+    <div><div class="lbl">System</div><b>${panelWord}</b></div>
+  </div>
+  <table>
+    <thead><tr><th>Description</th><th class="amt">Amount</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <div class="total"><div class="lbl">Total Quote</div><div class="val">${money(q.total)}</div></div>
+  ${requiresElectrician ? `<div class="note">&#9889; This service requires a licensed electrician in ${locationName}. Labor is priced at the licensed electrician rate.</div>` : ''}
+  <div class="terms">This quote is an estimate for post-installation service work and is valid for 30 days from the date above. Final pricing may vary based on site conditions confirmed at the time of service. Prepared by ${COMPANY.name}. Questions? Call ${COMPANY.phone} or email ${COMPANY.email}.</div>
+</body></html>`;
+
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('aria-hidden', 'true');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    let printed = false;
+    const triggerPrint = () => {
+      if (printed) return;
+      printed = true;
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } finally {
+        setTimeout(() => {
+          if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+        }, 1000);
+      }
+    };
+    // Give the fonts/layout a moment to settle before opening the print dialog.
+    iframe.onload = () => setTimeout(triggerPrint, 400);
+    // Fallback in case onload doesn't fire for the written document.
+    setTimeout(triggerPrint, 800);
+  };
+
   return (
     <div style={{ 
       minHeight: '100vh', 
@@ -129,22 +275,42 @@ function App() {
       padding: '20px'
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <header style={{ marginBottom: '32px' }}>
-          <h1 style={{ 
-            fontSize: '28px', 
-            fontWeight: '700', 
-            margin: '0 0 8px 0',
-            color: T.text
-          }}>
-            Service Quote Generator
-          </h1>
-          <p style={{ 
-            color: T.muted, 
-            margin: 0, 
-            fontSize: '16px' 
-          }}>
-            Generate professional quotes for post-install services
-          </p>
+        <header style={{
+          marginBottom: '32px',
+          borderBottom: `1px solid ${T.border}`,
+          paddingBottom: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          flexWrap: 'wrap',
+          gap: '16px'
+        }}>
+          <div>
+            <div style={{
+              fontSize: '22px',
+              fontWeight: '700',
+              letterSpacing: '1px',
+              color: T.text,
+              marginBottom: '12px'
+            }}>
+              VENTURE <span style={{ color: T.accent }}>HOME</span>
+            </div>
+            <h1 style={{
+              fontSize: '26px',
+              fontWeight: '700',
+              margin: '0 0 6px 0',
+              color: T.text
+            }}>
+              Service Quote Generator
+            </h1>
+            <p style={{ color: T.muted, margin: 0, fontSize: '15px' }}>
+              Standardized pricing for post-install service work
+            </p>
+          </div>
+          <div style={{ textAlign: 'right', color: T.muted, fontSize: '13px', lineHeight: 1.7 }}>
+            (888) 522-9161<br />
+            contact@venturehome.com
+          </div>
         </header>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
@@ -493,6 +659,7 @@ function App() {
 
                 {/* Generate PDF Button */}
                 <button
+                  onClick={generatePDF}
                   onMouseEnter={() => setHoverStates(prev => ({ ...prev, pdf: true }))}
                   onMouseLeave={() => setHoverStates(prev => ({ ...prev, pdf: false }))}
                   style={{
